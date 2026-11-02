@@ -232,6 +232,15 @@ button,input{font-family:inherit;color:inherit}
     }).then(function (j) { clearTimeout(t); return j; }, function (e) { clearTimeout(t); throw e; });
   }
 
+  function getFirst(urls, ms) {
+    var i = 0;
+    function next(lastErr) {
+      if (i >= urls.length) return Promise.reject(lastErr || new Error('failed'));
+      return getJSON(urls[i++], ms || 15000).catch(next);
+    }
+    return next();
+  }
+
   /* ---------- map ---------- */
   var map = L.map('map', { zoomControl: true, attributionControl: true });
   map.fitBounds([[25.0, 44.0], [39.8, 63.5]]);
@@ -387,7 +396,13 @@ button,input{font-family:inherit;color:inherit}
         d = r;
         if (hav([o.lon, o.lat], [d.lon, d.lat]) < 1) throw new UserError('مبدا و مقصد تقریباً یکی هستند.');
         setStatus('محاسبه‌ی مسیر…');
-        return getJSON('https://router.project-osrm.org/route/v1/driving/' + o.lon + ',' + o.lat + ';' + d.lon + ',' + d.lat + '?overview=full&geometries=geojson');
+        var q = o.lon + ',' + o.lat + ';' + d.lon + ',' + d.lat + '?overview=full&geometries=geojson';
+        return getFirst([
+          'https://router.project-osrm.org/route/v1/driving/' + q,
+          'https://routing.openstreetmap.de/routed-car/route/v1/driving/' + q
+        ]).catch(function () {
+          throw new UserError('سرویس مسیریابی (OSRM) جواب نداد. اگر VPN دارید روشن کنید و دوباره امتحان کنید.');
+        });
       })
       .then(function (rt) {
         if (rt.code !== 'Ok' || !rt.routes || !rt.routes.length) throw new UserError('مسیر ماشین‌رو بین این دو نقطه پیدا نشد. نقطه‌ها را نزدیک جاده انتخاب کنید.');
@@ -395,7 +410,9 @@ button,input{font-family:inherit;color:inherit}
         var sp = samplePoints(route.geometry.coordinates);
         route.sp = sp;
         setStatus('دریافت وضعیت هوا در ' + fa(sp.pts.length) + ' نقطه‌ی مسیر…');
-        return fetchWeather(sp.pts);
+        return fetchWeather(sp.pts).catch(function () {
+          throw new UserError('سرویس هوا (Open-Meteo) جواب نداد. اگر VPN دارید روشن کنید و دوباره امتحان کنید.');
+        });
       })
       .then(function (wx) {
         var dep = (departTouched && departEl.value) ? new Date(departEl.value).getTime() : Date.now();
