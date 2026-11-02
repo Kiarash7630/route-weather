@@ -350,7 +350,11 @@ button,input{font-family:inherit;color:inherit}
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
       '&hourly=temperature_2m,precipitation,snowfall,weather_code,wind_speed_10m,wind_gusts_10m,visibility' +
       '&forecast_days=6&timeformat=unixtime&timezone=auto';
-    return getJSON(url, 30000).then(function (d) { return Array.isArray(d) ? d : [d]; });
+    return getJSON(url, 30000).then(function (d) {
+      d = Array.isArray(d) ? d : [d];
+      if (d.length !== pts.length || !d[0] || !d[0].hourly) throw new Error('bad weather data');
+      return d;
+    });
   }
   function pickHour(h, etaMs) {
     var t = h.time;
@@ -420,7 +424,7 @@ button,input{font-family:inherit;color:inherit}
         var pts = route.sp.pts;
         pts.forEach(function (p, i) {
           p.eta = dep + route.duration * p.frac * 1000;
-          p.w = pickHour(wx[i], p.eta);
+          p.w = pickHour(wx[i].hourly, p.eta);
           p.a = assess(p.w);
           var d0 = WX[p.w.code] || ['نامشخص', '❔'];
           p.desc = d0[0]; p.icon = d0[1];
