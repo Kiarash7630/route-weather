@@ -160,8 +160,9 @@ button,input{font-family:inherit;color:inherit}
 
   /* ---------- helpers ---------- */
   var $ = function (s) { return document.querySelector(s); };
+  var LRI = '\u2066', PDI = '\u2069';
   var fa = function (n, d) {
-    return Number(n).toLocaleString('fa-IR', { maximumFractionDigits: d == null ? 0 : d, minimumFractionDigits: 0 });
+    return LRI + Number(n).toLocaleString('fa-IR', { maximumFractionDigits: d == null ? 0 : d, minimumFractionDigits: 0 }) + PDI;
   };
   var norm = function (s) {
     return String(s).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/ۀ/g, 'ه')
@@ -208,7 +209,7 @@ button,input{font-family:inherit;color:inherit}
   var SEV_LABEL = ['شرایط مناسب', 'بارش یا شرایط ضعیف', 'شرایط نامساعد', 'شرایط خطرناک'];
 
   var fmtTime = function (ms) {
-    return new Date(ms).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return LRI + new Date(ms).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', hour12: false }) + PDI;
   };
   var dayKey = function (ms) { return new Date(ms).toLocaleDateString('en-CA'); };
   var fmtDay = function (ms) { return new Date(ms).toLocaleDateString('fa-IR', { weekday: 'long' }); };
@@ -377,7 +378,7 @@ button,input{font-family:inherit;color:inherit}
     }
     if ([56, 57, 66, 67].indexOf(c) > -1) { s = 3; tags.push('یخ‌زدگی جاده'); }
     else if (w.temp <= 1 && p >= 0.1) { s = Math.max(s, 3); tags.push('خطر یخ‌زدگی جاده'); }
-    if (c >= 95) s = 3;
+    if (c >= 96) s = 3; else if (c === 95) s = Math.max(s, 2);
     if (w.vis < 200) { s = 3; tags.push('مه بسیار غلیظ'); }
     else if (w.vis < 1000) { s = Math.max(s, 2); tags.push('مه'); }
     if (w.gust >= 70) { s = 3; tags.push('باد بسیار شدید'); }
