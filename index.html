@@ -32,12 +32,18 @@ html,body{height:100%;margin:0}
 body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.7;-webkit-text-size-adjust:100%;overflow:hidden}
 button,input{font-family:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[data-s="0"]{--c:var(--s0)} [data-s="1"]{--c:var(--s1)} [data-s="2"]{--c:var(--s2)} [data-s="3"]{--c:var(--s3)}
 
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-top:env(safe-area-inset-top)}
 
 /* ---------- form ---------- */
 .top{flex:none;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 12px}
 .title{font-size:17px;font-weight:700;margin:0 0 8px}
+.saved{display:flex;gap:6px;overflow-x:auto;margin:0 0 8px;padding-bottom:2px}
+.saved[hidden]{display:none}
+.sv{flex:none;display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--paper)}
+.sv button{border:0;background:none;padding:3px 12px;font-size:13px;cursor:pointer}
+.sv .x{padding:3px 10px 3px 4px;color:var(--muted)}
 .field{display:flex;gap:6px;align-items:center;margin-bottom:6px}
 .dot{flex:none;width:14px;height:14px;border-radius:50%}
 .dot.o{border:3px solid var(--accent)}
@@ -52,38 +58,55 @@ button,input{font-family:inherit;color:inherit}
 .btn[disabled]{opacity:.6;cursor:progress}
 .actions{display:flex;gap:6px}
 .actions .primary{flex:1}
-.status{min-height:0;font-size:13px;color:var(--muted);margin:6px 2px 0}
+.status{font-size:13px;color:var(--muted);margin:6px 2px 0}
 .status:empty{display:none}
 .status.err{color:var(--s3);font-weight:600}
 
 .bar{display:none;width:100%;align-items:center;gap:10px;border:0;background:none;padding:2px 0;text-align:start;cursor:pointer;font-size:15px}
 .bar b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar span{flex:none;font-size:13px;color:var(--accent)}
-.top.collapsed .title,.top.collapsed #form{display:none}
+.top.collapsed .title,.top.collapsed #form,.top.collapsed .saved{display:none}
 .top.collapsed .bar{display:flex}
 
 /* ---------- map ---------- */
 .mapwrap{position:relative;flex:1 1 auto;min-height:200px}
 #map{position:absolute;inset:0;direction:ltr;background:#dfe7e5}
 #map.picking{cursor:crosshair}
-.hint{position:absolute;z-index:500;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;background:var(--ink);color:var(--paper);border-radius:999px;padding:6px 8px 6px 14px;font-size:14px;max-width:92%;direction:rtl}
+.mapbtns{position:absolute;z-index:500;top:10px;right:10px;display:flex;gap:6px}
+.mapbtns button{height:40px;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:0 14px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.hint{position:absolute;z-index:500;top:58px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;background:var(--ink);color:var(--paper);border-radius:999px;padding:6px 8px 6px 14px;font-size:14px;max-width:92%;direction:rtl}
 .hint button{border:0;border-radius:999px;background:var(--paper);color:var(--ink);height:30px;padding:0 12px;cursor:pointer}
 .hint[hidden]{display:none}
 .mk{width:30px;height:30px;border-radius:50%;background:var(--surface);border:4px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;box-shadow:0 0 0 2px #fff}
 .mk.active{transform:scale(1.25)}
+.pin{position:relative;width:60px;height:26px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-size:12px;font-weight:700;border:3px solid #0e6b7c;background:#fff;color:#14232e;box-shadow:0 1px 4px rgba(0,0,0,.35);direction:rtl}
+.pin::after{content:"";position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);border:6px solid transparent;border-top-color:#0e6b7c;border-bottom:0}
+.pin.d{background:#14232e;color:#fff;border-color:#14232e}
+.pin.d::after{border-top-color:#14232e}
 .pop{direction:rtl;font-family:var(--font);font-size:13.5px;line-height:1.8;min-width:170px;color:#14232e}
 .leaflet-popup-content{margin:10px 12px}
 .leaflet-container{font-family:var(--font)}
 
 /* ---------- results sheet ---------- */
-.sheet{flex:none;max-height:52vh;max-height:52dvh;overflow-y:auto;background:var(--surface);border-top:1px solid var(--line);border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:600;padding:14px 14px calc(14px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.sheet{flex:none;max-height:54vh;max-height:54dvh;overflow-y:auto;background:var(--surface);border-top:1px solid var(--line);border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:600;padding:4px 14px calc(14px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
 .sheet[hidden]{display:none}
-[data-s="0"]{--c:var(--s0)} [data-s="1"]{--c:var(--s1)} [data-s="2"]{--c:var(--s2)} [data-s="3"]{--c:var(--s3)}
+.sheet.min{max-height:176px;overflow:hidden}
+.sheet.min > *:not(.handle):not(.meta):not(.verdict){display:none}
+.handle{display:flex;justify-content:center;align-items:center;width:100%;height:26px;border:0;background:none;cursor:pointer;padding:0}
+.handle i{display:block;width:44px;height:5px;border-radius:3px;background:var(--line)}
 .meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--muted);margin-bottom:8px}
 .meta b{color:var(--ink)}
+.routes{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding:2px 2px 4px}
+.rc{flex:1 0 auto;min-width:138px;text-align:start;border:1px solid var(--line);border-inline-start:6px solid var(--c);border-radius:12px;background:var(--paper);padding:6px 10px;cursor:pointer;font-size:13px;line-height:1.55}
+.rc.sel{background:var(--surface);box-shadow:0 0 0 2px var(--ink)}
+.rc b{display:block;font-size:14px}
+.rc small{display:block;color:var(--muted);font-size:12.5px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:0 8px;margin-inline-start:6px}
 .verdict{border-inline-start:6px solid var(--c);padding:2px 12px;margin-bottom:8px}
 .verdict strong{display:block;font-size:17px}
 .verdict span{font-size:13.5px;color:var(--muted)}
+.rec{border-inline-start:6px solid var(--c);background:var(--paper);border-radius:10px;padding:6px 12px;margin:0 0 10px;font-size:14px}
+.rec strong{display:block}
 .groups{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px}
 .groups li button{width:100%;text-align:start;display:flex;gap:10px;align-items:center;border:0;border-radius:10px;background:var(--paper);padding:8px 10px;border-inline-start:6px solid var(--c);cursor:pointer;font-size:14px}
 .groups .gi{font-size:20px}
@@ -96,10 +119,17 @@ button,input{font-family:inherit;color:inherit}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin:8px 0 12px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-inline-end:5px}
 
-.actions2{display:flex;gap:8px;margin-bottom:12px}
+.best{background:var(--paper);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:14px}
+.best strong{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px 12px;font-size:13px;cursor:pointer}
+.chip i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.warn{font-size:13.5px;border-radius:10px;background:var(--paper);border-inline-start:6px solid var(--s2);padding:6px 12px;margin:0 0 12px}
+
+.actions2{display:flex;gap:8px;margin-bottom:8px}
 .actions2 a{flex:1;display:flex;align-items:center;justify-content:center;height:46px;border-radius:12px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:700}
-.actions2 button{flex:none}
-.note{font-size:12.5px;color:var(--muted);margin:-6px 0 12px}
+.actions2 .btn{flex:1}
+.note{font-size:12.5px;color:var(--muted);margin:0 0 12px}
 
 .pts{list-style:none;margin:0;padding:0}
 .pt{width:100%;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"ico top temp" "ico bot nums";column-gap:10px;align-items:center;text-align:start;border:0;background:none;padding:8px 10px;border-top:1px solid var(--line);border-inline-start:5px solid var(--c);cursor:pointer;font-size:14px}
@@ -109,7 +139,7 @@ button,input{font-family:inherit;color:inherit}
 .pt .top1 span{color:var(--muted);font-size:13px;margin-inline-start:8px}
 .pt .temp{grid-area:temp;font-weight:700}
 .pt .bot{grid-area:bot;font-size:13.5px}
-.pt .nums{grid-area:nums;font-size:12.5px;color:var(--muted);display:flex;gap:10px}
+.pt .nums{grid-area:nums;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px;justify-content:flex-end}
 .tag{display:inline-block;font-size:12px;border-radius:999px;padding:0 8px;margin-inline-start:6px;background:var(--c);color:#14232e}
 .foot{font-size:12px;color:var(--muted);margin:14px 0 0}
 </style>
@@ -119,17 +149,18 @@ button,input{font-family:inherit;color:inherit}
   <header class="top" id="top">
     <button type="button" class="bar" id="bar" aria-label="ویرایش مسیر"><b id="barText"></b><span>ویرایش</span></button>
     <h1 class="title">هوای مسیر</h1>
+    <div class="saved" id="saved" hidden></div>
     <form id="form" autocomplete="off">
       <div class="field">
         <span class="dot o" aria-hidden="true"></span>
         <input id="origin" list="cities" placeholder="مبدا، مثلاً تهران" aria-label="مبدا" enterkeyhint="next">
         <button type="button" class="ib" id="locBtn" aria-label="استفاده از موقعیت من">📍</button>
-        <button type="button" class="ib" data-pick="origin" aria-label="انتخاب مبدا روی نقشه">🎯</button>
+        <button type="button" class="ib" data-pick="o" aria-label="انتخاب مبدا روی نقشه">🎯</button>
       </div>
       <div class="field">
         <span class="dot d" aria-hidden="true"></span>
         <input id="dest" list="cities" placeholder="مقصد، مثلاً مشهد" aria-label="مقصد" enterkeyhint="go">
-        <button type="button" class="ib" data-pick="dest" aria-label="انتخاب مقصد روی نقشه">🎯</button>
+        <button type="button" class="ib" data-pick="d" aria-label="انتخاب مقصد روی نقشه">🎯</button>
       </div>
       <div class="depart">
         <label for="depart">زمان حرکت</label>
@@ -147,6 +178,10 @@ button,input{font-family:inherit;color:inherit}
 
   <div class="mapwrap">
     <div id="map" role="application" aria-label="نقشه‌ی مسیر"></div>
+    <div class="mapbtns">
+      <button type="button" id="pickO">📍 انتخاب مبدا</button>
+      <button type="button" id="pickD">🏁 انتخاب مقصد</button>
+    </div>
     <div class="hint" id="hint" hidden><span id="hintText"></span><button type="button" id="hintCancel">لغو</button></div>
   </div>
 
@@ -164,6 +199,7 @@ button,input{font-family:inherit;color:inherit}
   var fa = function (n, d) {
     return LRI + Number(n).toLocaleString('fa-IR', { maximumFractionDigits: d == null ? 0 : d, minimumFractionDigits: 0 }) + PDI;
   };
+  var deg = function (t) { return LRI + Number(Math.round(t)).toLocaleString('fa-IR') + '°' + PDI; };
   var norm = function (s) {
     return String(s).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/ۀ/g, 'ه')
       .replace(/[\u200c\u200e\u200f]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -207,6 +243,7 @@ button,input{font-family:inherit;color:inherit}
   };
   var SEV_COLOR = ['#2f9e6e', '#e0a526', '#e2702b', '#d23b3b'];
   var SEV_LABEL = ['شرایط مناسب', 'بارش یا شرایط ضعیف', 'شرایط نامساعد', 'شرایط خطرناک'];
+  var SEVW = [0, 1, 4, 10];
 
   var fmtTime = function (ms) {
     return LRI + new Date(ms).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', hour12: false }) + PDI;
@@ -223,6 +260,10 @@ button,input{font-family:inherit;color:inherit}
     var p = function (n) { return String(n).padStart(2, '0'); };
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
+  function whenText(ms, depMs) {
+    var t = fmtTime(ms);
+    return dayKey(ms) !== dayKey(depMs) ? fmtDay(ms) + ' ' + t : t;
+  }
 
   function getJSON(url, ms) {
     var ctl = new AbortController();
@@ -232,7 +273,6 @@ button,input{font-family:inherit;color:inherit}
       return r.json();
     }).then(function (j) { clearTimeout(t); return j; }, function (e) { clearTimeout(t); throw e; });
   }
-
   function getFirst(urls, ms) {
     var i = 0;
     function next(lastErr) {
@@ -240,85 +280,6 @@ button,input{font-family:inherit;color:inherit}
       return getJSON(urls[i++], ms || 15000).catch(next);
     }
     return next();
-  }
-
-  /* ---------- map ---------- */
-  var map = L.map('map', { zoomControl: true, attributionControl: true });
-  map.fitBounds([[25.0, 44.0], [39.8, 63.5]]);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18, attribution: '© OpenStreetMap'
-  }).addTo(map);
-  var routeLayer = L.layerGroup().addTo(map);
-  if (window.ResizeObserver) new ResizeObserver(function () { map.invalidateSize(); }).observe($('#map'));
-
-  /* ---------- inputs ---------- */
-  var originEl = $('#origin'), destEl = $('#dest'), departEl = $('#depart');
-  var departTouched = false;
-  departEl.value = toLocalInput(new Date());
-  departEl.min = toLocalInput(new Date(Date.now() - 3600 * 1000));
-  departEl.max = toLocalInput(new Date(Date.now() + 4 * 86400 * 1000));
-  departEl.addEventListener('input', function () { departTouched = true; });
-  $('#nowBtn').addEventListener('click', function () { departTouched = false; departEl.value = toLocalInput(new Date()); });
-
-  [originEl, destEl].forEach(function (el) {
-    el.addEventListener('input', function () { delete el.dataset.lat; delete el.dataset.lon; });
-  });
-
-  function setPoint(el, pt, label) {
-    el.value = label; el.dataset.lat = pt.lat; el.dataset.lon = pt.lon;
-  }
-  function setStatus(msg, isErr) {
-    var s = $('#status'); s.textContent = msg || ''; s.classList.toggle('err', !!isErr);
-  }
-
-  $('#swap').addEventListener('click', function () {
-    var a = { v: originEl.value, la: originEl.dataset.lat, lo: originEl.dataset.lon };
-    var b = { v: destEl.value, la: destEl.dataset.lat, lo: destEl.dataset.lon };
-    originEl.value = b.v; destEl.value = a.v;
-    delete originEl.dataset.lat; delete originEl.dataset.lon; delete destEl.dataset.lat; delete destEl.dataset.lon;
-    if (b.la) { originEl.dataset.lat = b.la; originEl.dataset.lon = b.lo; }
-    if (a.la) { destEl.dataset.lat = a.la; destEl.dataset.lon = a.lo; }
-  });
-
-  $('#locBtn').addEventListener('click', function () {
-    if (!navigator.geolocation) { setStatus('این مرورگر موقعیت مکانی را پشتیبانی نمی‌کند.', true); return; }
-    setStatus('در حال یافتن موقعیت شما…');
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      setPoint(originEl, { lat: pos.coords.latitude, lon: pos.coords.longitude }, 'موقعیت من');
-      setStatus('');
-    }, function () {
-      setStatus('دسترسی به موقعیت داده نشد. اجازه‌ی موقعیت مکانی را برای Safari در تنظیمات آیفون فعال کنید.', true);
-    }, { enableHighAccuracy: true, timeout: 15000 });
-  });
-
-  var pickTarget = null;
-  function endPick() { pickTarget = null; $('#hint').hidden = true; $('#map').classList.remove('picking'); }
-  document.querySelectorAll('[data-pick]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      pickTarget = b.dataset.pick;
-      $('#hintText').textContent = pickTarget === 'origin' ? 'روی نقشه بزنید تا مبدا انتخاب شود' : 'روی نقشه بزنید تا مقصد انتخاب شود';
-      $('#hint').hidden = false; $('#map').classList.add('picking');
-    });
-  });
-  $('#hintCancel').addEventListener('click', endPick);
-  map.on('click', function (e) {
-    if (!pickTarget) return;
-    var el = pickTarget === 'origin' ? originEl : destEl;
-    setPoint(el, { lat: e.latlng.lat, lon: e.latlng.lng }, 'نقطه‌ی انتخابی روی نقشه');
-    endPick();
-  });
-
-  function resolvePoint(el) {
-    var v = el.value.trim();
-    if (!v) return Promise.reject(new UserError(el === originEl ? 'مبدا را وارد کنید.' : 'مقصد را وارد کنید.'));
-    if (el.dataset.lat) return Promise.resolve({ lat: +el.dataset.lat, lon: +el.dataset.lon, label: v });
-    var c = CITY_INDEX[norm(v)];
-    if (c) return Promise.resolve({ lat: c.lat, lon: c.lon, label: v });
-    var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ir&accept-language=fa&q=' + encodeURIComponent(v);
-    return getJSON(url).then(function (r) {
-      if (!r.length) throw new UserError('«' + v + '» پیدا نشد. نام را کامل‌تر بنویسید یا روی نقشه انتخاب کنید.');
-      return { lat: +r[0].lat, lon: +r[0].lon, label: v };
-    });
   }
 
   /* ---------- geometry ---------- */
@@ -331,7 +292,7 @@ button,input{font-family:inherit;color:inherit}
     var cum = [0], i;
     for (i = 1; i < coords.length; i++) cum[i] = cum[i - 1] + hav(coords[i - 1], coords[i]);
     var total = cum[cum.length - 1];
-    var n = Math.max(5, Math.min(24, Math.round(total / 25)));
+    var n = Math.max(5, Math.min(18, Math.round(total / 30)));
     var pts = [], j = 1;
     for (var k = 0; k <= n; k++) {
       var target = total * k / n;
@@ -342,6 +303,14 @@ button,input{font-family:inherit;color:inherit}
         lat: a[1] + (b[1] - a[1]) * f, lon: a[0] + (b[0] - a[0]) * f });
     }
     return { pts: pts, total: total };
+  }
+  function nearLabel(lat, lon) {
+    var best = null, bd = 1e9;
+    Object.keys(CITIES).forEach(function (n) {
+      var d = hav([lon, lat], [CITIES[n][1], CITIES[n][0]]);
+      if (d < bd) { bd = d; best = n; }
+    });
+    return bd < 25 ? 'نزدیک ' + best : 'نقطه‌ی انتخابی روی نقشه';
   }
 
   /* ---------- weather ---------- */
@@ -386,22 +355,219 @@ button,input{font-family:inherit;color:inherit}
     return { s: s, tags: tags };
   }
 
-  /* ---------- main ---------- */
-  var state = { busy: false };
+  /* ---------- map ---------- */
+  var map = L.map('map', { zoomControl: true, attributionControl: true });
+  map.fitBounds([[25.0, 44.0], [39.8, 63.5]]);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18, attribution: '© OpenStreetMap'
+  }).addTo(map);
+  var routeLayer = L.layerGroup().addTo(map);
+  var pinLayer = L.layerGroup().addTo(map);
+  if (window.ResizeObserver) new ResizeObserver(function () { map.invalidateSize(); }).observe($('#map'));
+
+  /* ---------- inputs ---------- */
+  var originEl = $('#origin'), destEl = $('#dest'), departEl = $('#depart'), sheetEl = $('#sheet');
+  var departTouched = false;
+  departEl.value = toLocalInput(new Date());
+  departEl.min = toLocalInput(new Date(Date.now() - 3600 * 1000));
+  departEl.max = toLocalInput(new Date(Date.now() + 4 * 86400 * 1000));
+  departEl.addEventListener('input', function () { departTouched = true; });
+  departEl.addEventListener('change', function () {
+    departTouched = true;
+    if (data) {
+      var t = new Date(departEl.value).getTime();
+      if (!isNaN(t)) { data.dep = t; showRoute(data.sel, false); }
+    }
+  });
+  $('#nowBtn').addEventListener('click', function () {
+    departTouched = false; departEl.value = toLocalInput(new Date());
+    if (data) { data.dep = Date.now(); showRoute(data.sel, false); }
+  });
+
+  [originEl, destEl].forEach(function (el) {
+    el.addEventListener('input', function () { delete el.dataset.lat; delete el.dataset.lon; });
+  });
+
+  var pins = { o: null, d: null };
+  function pinIcon(kind) {
+    return L.divIcon({ className: '', iconSize: [60, 36], iconAnchor: [30, 36],
+      html: '<div class="pin ' + kind + '">' + (kind === 'o' ? 'مبدا' : 'مقصد') + '</div>' });
+  }
+  function placePin(kind, lat, lon) {
+    var el = kind === 'o' ? originEl : destEl;
+    if (pins[kind]) { pins[kind].setLatLng([lat, lon]); return; }
+    var m = L.marker([lat, lon], { icon: pinIcon(kind), draggable: true, zIndexOffset: 1000, keyboard: false }).addTo(pinLayer);
+    m.on('dragend', function () {
+      var ll = m.getLatLng();
+      setPoint(el, { lat: ll.lat, lon: ll.lng }, nearLabel(ll.lat, ll.lng));
+      if (hasBoth()) run();
+    });
+    pins[kind] = m;
+  }
+  function setPoint(el, pt, label) {
+    el.value = label; el.dataset.lat = pt.lat; el.dataset.lon = pt.lon;
+    placePin(el === originEl ? 'o' : 'd', pt.lat, pt.lon);
+  }
+  function hasPoint(el) { return !!(el.dataset.lat || (el.value && el.value.trim())); }
+  function hasBoth() { return hasPoint(originEl) && hasPoint(destEl); }
+  function setStatus(msg, isErr) {
+    var s = $('#status'); s.textContent = msg || ''; s.classList.toggle('err', !!isErr);
+  }
+
+  $('#swap').addEventListener('click', function () {
+    var a = { v: originEl.value, la: originEl.dataset.lat, lo: originEl.dataset.lon };
+    var b = { v: destEl.value, la: destEl.dataset.lat, lo: destEl.dataset.lon };
+    originEl.value = b.v; destEl.value = a.v;
+    delete originEl.dataset.lat; delete originEl.dataset.lon; delete destEl.dataset.lat; delete destEl.dataset.lon;
+    if (b.la) { originEl.dataset.lat = b.la; originEl.dataset.lon = b.lo; placePin('o', +b.la, +b.lo); }
+    if (a.la) { destEl.dataset.lat = a.la; destEl.dataset.lon = a.lo; placePin('d', +a.la, +a.lo); }
+  });
+
+  $('#locBtn').addEventListener('click', function () {
+    if (!navigator.geolocation) { setStatus('این مرورگر موقعیت مکانی را پشتیبانی نمی‌کند.', true); return; }
+    setStatus('در حال یافتن موقعیت شما…');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      setPoint(originEl, { lat: pos.coords.latitude, lon: pos.coords.longitude }, 'موقعیت من');
+      map.setView([pos.coords.latitude, pos.coords.longitude], 10);
+      setStatus('');
+    }, function () {
+      setStatus('دسترسی به موقعیت داده نشد. اجازه‌ی موقعیت مکانی را برای Safari در تنظیمات آیفون فعال کنید.', true);
+    }, { enableHighAccuracy: true, timeout: 15000 });
+  });
+
+  /* pick points on the map */
+  var pickTarget = null;
+  function endPick() { pickTarget = null; $('#hint').hidden = true; $('#map').classList.remove('picking'); }
+  function startPick(kind) {
+    pickTarget = kind;
+    $('#hintText').textContent = kind === 'o' ? 'روی نقشه بزنید تا مبدا انتخاب شود' : 'روی نقشه بزنید تا مقصد انتخاب شود';
+    $('#hint').hidden = false; $('#map').classList.add('picking');
+    sheetEl.classList.add('min');
+  }
+  document.querySelectorAll('[data-pick]').forEach(function (b) {
+    b.addEventListener('click', function () { startPick(b.dataset.pick); });
+  });
+  $('#pickO').addEventListener('click', function () { startPick('o'); });
+  $('#pickD').addEventListener('click', function () { startPick('d'); });
+  $('#hintCancel').addEventListener('click', endPick);
+  map.on('click', function (e) {
+    if (!pickTarget) return;
+    var kind = pickTarget, el = kind === 'o' ? originEl : destEl;
+    setPoint(el, { lat: e.latlng.lat, lon: e.latlng.lng }, nearLabel(e.latlng.lat, e.latlng.lng));
+    endPick();
+    if (hasBoth()) run(); else startPick(kind === 'o' ? 'd' : 'o');
+  });
+
+  function resolvePoint(el) {
+    var v = el.value.trim();
+    if (!v) return Promise.reject(new UserError(el === originEl ? 'مبدا را وارد کنید.' : 'مقصد را وارد کنید.'));
+    if (el.dataset.lat) return Promise.resolve({ lat: +el.dataset.lat, lon: +el.dataset.lon, label: v });
+    var c = CITY_INDEX[norm(v)];
+    if (c) return Promise.resolve({ lat: c.lat, lon: c.lon, label: v });
+    var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ir&accept-language=fa&q=' + encodeURIComponent(v);
+    return getJSON(url).then(function (r) {
+      if (!r.length) throw new UserError('«' + v + '» پیدا نشد. نام را کامل‌تر بنویسید یا روی نقشه انتخاب کنید.');
+      return { lat: +r[0].lat, lon: +r[0].lon, label: v };
+    });
+  }
+
+  /* ---------- saved routes ---------- */
+  var LSKEY = 'rw_saved_v1';
+  function loadSaved() {
+    try { var a = JSON.parse(localStorage.getItem(LSKEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+  }
+  function storeSaved(a) { try { localStorage.setItem(LSKEY, JSON.stringify(a)); } catch (e) { /* ignore */ } }
+  function renderSaved() {
+    var box = $('#saved'), a = loadSaved();
+    box.innerHTML = ''; box.hidden = !a.length;
+    a.forEach(function (it, i) {
+      var w = document.createElement('div'); w.className = 'sv';
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = it.o.label + ' ← ' + it.d.label;
+      b.addEventListener('click', function () {
+        setPoint(originEl, it.o, it.o.label); setPoint(destEl, it.d, it.d.label); run();
+      });
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'x';
+      x.setAttribute('aria-label', 'حذف مسیر ذخیره‌شده'); x.textContent = '✕';
+      x.addEventListener('click', function () { var arr = loadSaved(); arr.splice(i, 1); storeSaved(arr); renderSaved(); });
+      w.appendChild(b); w.appendChild(x); box.appendChild(w);
+    });
+  }
+  function saveCurrent(btn) {
+    if (!data) return;
+    var key = function (it) { return it.o.label + '|' + it.d.label + '|' + it.o.lat.toFixed(2) + '|' + it.d.lat.toFixed(2); };
+    var it = { o: { label: data.o.label, lat: data.o.lat, lon: data.o.lon }, d: { label: data.d.label, lat: data.d.lat, lon: data.d.lon } };
+    var arr = loadSaved();
+    if (!arr.some(function (x) { return key(x) === key(it); })) { arr.unshift(it); storeSaved(arr.slice(0, 8)); }
+    renderSaved();
+    if (btn) { btn.textContent = 'ذخیره شد ✓'; }
+  }
+
+  /* ---------- evaluation ---------- */
+  var data = null;
   var markers = [];
 
+  function evalRoute(ri, depMs) {
+    var r = data.routes[ri];
+    var worst = 0, exposure = 0, seg = r.total / (r.pts.length - 1), beyond = false;
+    var pts = r.pts.map(function (p, i) {
+      var eta = depMs + r.dur * p.frac * 1000;
+      var w = pickHour(r.wx[i].hourly, eta);
+      var a = assess(w);
+      var d0 = WX[w.code] || ['نامشخص', '❔'];
+      worst = Math.max(worst, a.s); exposure += SEVW[a.s] * seg / 10; if (w.beyond) beyond = true;
+      return { km: p.km, frac: p.frac, j: p.j, lat: p.lat, lon: p.lon, eta: eta, w: w, a: a,
+        desc: d0[0], icon: d0[1], elev: r.wx[i].elevation };
+    });
+    return { pts: pts, worst: worst, exposure: exposure, beyond: beyond };
+  }
+  function pickBestRoute(dep) {
+    var R = data.routes, evs = R.map(function (r, i) { return evalRoute(i, dep); });
+    var fastest = 0, i;
+    for (i = 1; i < R.length; i++) if (R[i].dur < R[fastest].dur) fastest = i;
+    var best = 0, bestCost = Infinity;
+    evs.forEach(function (e, k) {
+      e.cost = e.exposure + 0.25 * (R[k].dur - R[fastest].dur) / 60;
+      if (e.cost < bestCost - 0.001) { bestCost = e.cost; best = k; }
+    });
+    if (best !== fastest && evs[fastest].cost - bestCost < 3) best = fastest;
+    return { best: best, fastest: fastest, evs: evs };
+  }
+  function scanTimes(ri, dep) {
+    var out = [];
+    for (var k = 0; k < 24; k++) {
+      var ms = dep + k * 3600000, e = evalRoute(ri, ms);
+      out.push({ ms: ms, exposure: e.exposure, worst: e.worst });
+    }
+    return out;
+  }
+  function groupsOf(pts) {
+    var g = [], cur = null;
+    pts.forEach(function (p, i) {
+      if (p.a.s >= 1) {
+        if (!cur) { cur = { from: i, to: i, worst: p, wi: i }; g.push(cur); }
+        else cur.to = i;
+        if (p.a.s > cur.worst.a.s || (p.a.s === cur.worst.a.s && p.w.precip > cur.worst.w.precip)) { cur.worst = p; cur.wi = i; }
+      } else cur = null;
+    });
+    return g;
+  }
+
+  /* ---------- main ---------- */
+  var busy = false;
+
   function run() {
-    if (state.busy) return;
-    state.busy = true; endPick();
+    if (busy) return;
+    busy = true; endPick();
     var btn = $('#go'); btn.disabled = true; btn.textContent = 'در حال بررسی…';
     setStatus('پیدا کردن مبدا و مقصد…');
-    var o, d, route;
+    var o, d, routes;
     resolvePoint(originEl).then(function (r) { o = r; return resolvePoint(destEl); })
       .then(function (r) {
         d = r;
         if (hav([o.lon, o.lat], [d.lon, d.lat]) < 1) throw new UserError('مبدا و مقصد تقریباً یکی هستند.');
-        setStatus('محاسبه‌ی مسیر…');
-        var q = o.lon + ',' + o.lat + ';' + d.lon + ',' + d.lat + '?overview=full&geometries=geojson';
+        placePin('o', o.lat, o.lon); placePin('d', d.lat, d.lon);
+        setStatus('محاسبه‌ی مسیر و مسیرهای جایگزین…');
+        var q = o.lon + ',' + o.lat + ';' + d.lon + ',' + d.lat + '?overview=full&geometries=geojson&alternatives=3';
         return getFirst([
           'https://router.project-osrm.org/route/v1/driving/' + q,
           'https://routing.openstreetmap.de/routed-car/route/v1/driving/' + q
@@ -411,26 +577,29 @@ button,input{font-family:inherit;color:inherit}
       })
       .then(function (rt) {
         if (rt.code !== 'Ok' || !rt.routes || !rt.routes.length) throw new UserError('مسیر ماشین‌رو بین این دو نقطه پیدا نشد. نقطه‌ها را نزدیک جاده انتخاب کنید.');
-        route = rt.routes[0];
-        var sp = samplePoints(route.geometry.coordinates);
-        route.sp = sp;
-        setStatus('دریافت وضعیت هوا در ' + fa(sp.pts.length) + ' نقطه‌ی مسیر…');
-        return fetchWeather(sp.pts).catch(function () {
+        routes = rt.routes.slice(0, 3).map(function (r) {
+          var sp = samplePoints(r.geometry.coordinates);
+          return { dur: r.duration, total: sp.total, pts: sp.pts,
+            latlngs: r.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }) };
+        });
+        var flat = [];
+        routes.forEach(function (r) { r.pts.forEach(function (p) { flat.push(p); }); });
+        setStatus('دریافت وضعیت هوا در ' + fa(flat.length) + ' نقطه…');
+        return fetchWeather(flat).catch(function () {
           throw new UserError('سرویس هوا (Open-Meteo) جواب نداد. اگر VPN دارید روشن کنید و دوباره امتحان کنید.');
         });
       })
       .then(function (wx) {
+        var off = 0;
+        routes.forEach(function (r) { r.wx = wx.slice(off, off + r.pts.length); off += r.pts.length; });
         var dep = (departTouched && departEl.value) ? new Date(departEl.value).getTime() : Date.now();
         if (isNaN(dep)) dep = Date.now();
-        var pts = route.sp.pts;
-        pts.forEach(function (p, i) {
-          p.eta = dep + route.duration * p.frac * 1000;
-          p.w = pickHour(wx[i].hourly, p.eta);
-          p.a = assess(p.w);
-          var d0 = WX[p.w.code] || ['نامشخص', '❔'];
-          p.desc = d0[0]; p.icon = d0[1];
-        });
-        render({ o: o, d: d, route: route, pts: pts, dep: dep, arr: dep + route.duration * 1000, total: route.sp.total });
+        data = { o: o, d: d, routes: routes, dep: dep, sel: 0 };
+        var rec = pickBestRoute(dep);
+        showRoute(rec.best, true);
+        $('#barText').textContent = o.label + ' ← ' + d.label;
+        $('#top').classList.add('collapsed');
+        sheetEl.classList.remove('min');
         setStatus('');
       })
       .catch(function (e) {
@@ -440,61 +609,113 @@ button,input{font-family:inherit;color:inherit}
         else msg = 'خطا در دریافت اطلاعات. اتصال اینترنت را بررسی کنید و چند لحظه بعد دوباره امتحان کنید.';
         setStatus(msg, true);
       })
-      .then(function () { state.busy = false; btn.disabled = false; btn.textContent = 'بررسی هوای مسیر'; });
+      .then(function () { busy = false; btn.disabled = false; btn.textContent = 'بررسی هوای مسیر'; });
   }
 
-  function better(a, b) { return a.a.s > b.a.s || (a.a.s === b.a.s && a.w.precip > b.w.precip); }
-  function groupsOf(pts) {
-    var g = [], cur = null;
-    pts.forEach(function (p, i) {
-      if (p.a.s >= 1) {
-        if (!cur) { cur = { from: i, to: i, worst: p, wi: i }; g.push(cur); }
-        else cur.to = i;
-        if (better(p, cur.worst)) { cur.worst = p; cur.wi = i; }
-      } else cur = null;
-    });
-    return g;
+  function showRoute(ri, fit) {
+    data.sel = ri;
+    var rec = pickBestRoute(data.dep);
+    var ev = rec.evs[ri];
+    renderMap(ev, ri, fit);
+    renderSheet(ev, ri, rec);
   }
 
-  function render(r) {
-    var pts = r.pts, worst = 0;
-    pts.forEach(function (p) { worst = Math.max(worst, p.a.s); });
-    var groups = groupsOf(pts);
-
-    /* map */
+  function renderMap(ev, ri, fit) {
     routeLayer.clearLayers(); markers = [];
-    var all = r.route.geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
-    var line = L.polyline(all, { color: '#ffffff', weight: 10, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(routeLayer);
+    data.routes.forEach(function (r, i) {
+      if (i === ri) return;
+      var alt = L.polyline(r.latlngs, { color: '#6b7c86', weight: 5, opacity: 0.7, dashArray: '2 9', lineCap: 'round' }).addTo(routeLayer);
+      alt.on('click', function () { if (!pickTarget) showRoute(i, false); });
+    });
+    var all = data.routes[ri].latlngs, pts = ev.pts;
+    var line = L.polyline(all, { color: '#ffffff', weight: 10, opacity: 0.95, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(routeLayer);
     for (var k = 0; k < pts.length - 1; k++) {
       var a = pts[k], b = pts[k + 1];
       var seg = [[a.lat, a.lon]];
       for (var q = a.j; q < b.j; q++) seg.push(all[q]);
       seg.push([b.lat, b.lon]);
-      L.polyline(seg, { color: SEV_COLOR[Math.max(a.a.s, b.a.s)], weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round' }).addTo(routeLayer);
+      L.polyline(seg, { color: SEV_COLOR[Math.max(a.a.s, b.a.s)], weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(routeLayer);
     }
-    L.circleMarker([r.o.lat, r.o.lon], { radius: 8, color: '#14232e', weight: 4, fillColor: '#fff', fillOpacity: 1 }).addTo(routeLayer);
-    L.circleMarker([r.d.lat, r.d.lon], { radius: 8, color: '#fff', weight: 3, fillColor: '#14232e', fillOpacity: 1 }).addTo(routeLayer);
     pts.forEach(function (p, i) {
       var icon = L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15],
         html: '<div class="mk" data-s="' + p.a.s + '" id="mk' + i + '">' + p.icon + '</div>' });
       var m = L.marker([p.lat, p.lon], { icon: icon, keyboard: false }).addTo(routeLayer);
-      m.bindPopup(popupHTML(p, r.dep));
+      m.bindPopup(popupHTML(p, data.dep));
       m.on('click', function () { setActive(i); });
       markers.push(m);
     });
-
-    /* sheet */
-    var html = '';
-    html += '<div class="meta"><span><b>' + fa(Math.round(r.total)) + '</b> کیلومتر</span><span><b>' + fmtDur(r.route.duration) +
-      '</b></span><span>رسیدن حدود <b>' + whenText(r.arr, r.dep) + '</b></span></div>';
-
-    var verdictTitle, verdictSub;
-    if (worst === 0) { verdictTitle = 'مسیر بدون بارش و شرایط خطرناک'; verdictSub = 'طبق پیش‌بینی، در طول مسیر مشکل مهمی دیده نمی‌شود.'; }
-    else {
-      verdictTitle = SEV_LABEL[worst] + ' در مسیر';
-      verdictSub = fa(groups.length) + ' بخش از مسیر هوای نامطلوب دارد.';
+    if (fit) {
+      requestAnimationFrame(function () {
+        map.invalidateSize();
+        map.fitBounds(line.getBounds(), { padding: [30, 30] });
+      });
     }
-    html += '<div class="verdict" data-s="' + worst + '"><strong>' + verdictTitle + '</strong><span>' + verdictSub + '</span></div>';
+  }
+
+  function routeReason(rec) {
+    var R = data.routes, b = rec.best, f = rec.fastest, evs = rec.evs;
+    if (R.length < 2) return '';
+    if (b === f) {
+      if (evs[b].worst === 0) return 'همه‌ی مسیرها از نظر هوا مناسب‌اند؛ سریع‌ترین مسیر پیشنهاد می‌شود.';
+      return 'سریع‌ترین مسیر از نظر هوا هم بهترین است (یا تفاوت قابل‌توجهی بین مسیرها نیست).';
+    }
+    var extra = R[b].dur - R[f].dur;
+    var why = evs[b].worst < evs[f].worst
+      ? 'بدترین وضعیت آن «' + SEV_LABEL[evs[b].worst] + '» است، به جای «' + SEV_LABEL[evs[f].worst] + '» در مسیر ' + fa(f + 1)
+      : 'کیلومتر کمتری با بارش یا شرایط نامساعد دارد';
+    return 'مسیر ' + fa(b + 1) + ' با ' + fmtDur(extra) + ' زمان بیشتر پیشنهاد می‌شود؛ ' + why + '.';
+  }
+
+  function bestTimeHTML(ri, ev) {
+    var dep = data.dep, scan = scanTimes(ri, dep), cur = scan[0];
+    var rest = scan.slice(1).sort(function (a, b) { return a.exposure - b.exposure || a.ms - b.ms; });
+    var best = rest[0], html = '<div class="best"><strong>بهترین ساعت حرکت</strong>';
+    if (cur.exposure === 0) {
+      html += '<span>ساعت حرکت فعلی از نظر هوا مناسب است.</span>';
+    } else if (best && cur.exposure - best.exposure >= 3 && best.exposure <= cur.exposure * 0.7) {
+      html += '<span>اگر حدود ساعت ' + whenText(best.ms, dep) + ' حرکت کنید، هوای مسیر بهتر است (بدترین وضعیت: «' +
+        SEV_LABEL[best.worst] + '» به جای «' + SEV_LABEL[cur.worst] + '»).</span><div class="chips">';
+      rest.slice(0, 3).forEach(function (c) {
+        if (c.exposure < cur.exposure) {
+          html += '<button type="button" class="chip" data-dep="' + c.ms + '" data-s="' + c.worst + '"><i></i>' + whenText(c.ms, dep) + '</button>';
+        }
+      });
+      html += '</div>';
+    } else {
+      html += '<span>در ۲۴ ساعت آینده ساعت به‌مراتب بهتری دیده نمی‌شود.</span>';
+    }
+    return html + '</div>';
+  }
+
+  function renderSheet(ev, ri, rec) {
+    var R = data.routes, r = R[ri], pts = ev.pts, dep = data.dep, worst = ev.worst;
+    var arr = dep + r.dur * 1000, groups = groupsOf(pts), maxElev = 0;
+    pts.forEach(function (p) { if (p.elev > maxElev) maxElev = p.elev; });
+    var html = '<button type="button" class="handle" data-act="handle" aria-label="کوچک یا بزرگ کردن پنل"><i></i></button>';
+
+    if (R.length > 1) {
+      html += '<div class="routes">';
+      R.forEach(function (rr, i) {
+        html += '<button type="button" class="rc' + (i === ri ? ' sel' : '') + '" data-r="' + i + '" data-s="' + rec.evs[i].worst + '" aria-pressed="' + (i === ri) + '">' +
+          '<b>مسیر ' + fa(i + 1) + (i === rec.best ? '<span class="badge">پیشنهادی</span>' : '') + '</b>' +
+          '<small>' + fa(Math.round(rr.total)) + ' کیلومتر · ' + fmtDur(rr.dur) + '</small>' +
+          '<small>' + SEV_LABEL[rec.evs[i].worst] + '</small></button>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="meta"><span><b>' + fa(Math.round(r.total)) + '</b> کیلومتر</span><span><b>' + fmtDur(r.dur) +
+      '</b></span><span>رسیدن حدود <b>' + whenText(arr, dep) + '</b></span>' +
+      (maxElev ? '<span>بلندترین نقطه <b>' + fa(Math.round(maxElev)) + '</b> متر</span>' : '') + '</div>';
+
+    var vt, vs;
+    if (worst === 0) { vt = 'مسیر بدون بارش و شرایط خطرناک'; vs = 'طبق پیش‌بینی، در طول مسیر مشکل مهمی دیده نمی‌شود.'; }
+    else { vt = SEV_LABEL[worst] + ' در مسیر'; vs = fa(groups.length) + ' بخش از مسیر هوای نامطلوب دارد.'; }
+    html += '<div class="verdict" data-s="' + worst + '"><strong>' + vt + '</strong><span>' + vs + '</span></div>';
+
+    if (R.length > 1) {
+      html += '<div class="rec" data-s="' + rec.evs[rec.best].worst + '"><strong>پیشنهاد مسیر</strong>' + routeReason(rec) + '</div>';
+    }
 
     if (groups.length) {
       html += '<ul class="groups">';
@@ -503,10 +724,14 @@ button,input{font-family:inherit;color:inherit}
         var range = g.from === g.to ? 'حدود کیلومتر ' + fa(Math.round(from.km)) :
           'کیلومتر ' + fa(Math.round(from.km)) + ' تا ' + fa(Math.round(to.km));
         html += '<li><button type="button" data-i="' + g.wi + '" data-s="' + w.a.s + '"><span class="gi">' + w.icon + '</span><span><b>' +
-          w.desc + '</b>' + (w.a.tags.length ? ' · ' + w.a.tags.join('، ') : '') + '<small>' + range + ' · حدود ساعت ' + whenText(w.eta, r.dep) + '</small></span></button></li>';
+          w.desc + '</b>' + (w.a.tags.length ? ' · ' + w.a.tags.join('، ') : '') + '<small>' + range + ' · حدود ساعت ' + whenText(w.eta, dep) + '</small></span></button></li>';
       });
       html += '</ul>';
     }
+
+    var cold = pts.some(function (p) { return p.elev > 1500 && (p.w.temp <= 3 || p.w.snow > 0); });
+    if (cold) html += '<p class="warn">در بخش‌هایی از مسیر (ارتفاع بالای ۱۵۰۰ متر) دما نزدیک صفر است؛ احتمال برف یا یخ‌زدگی جاده هست و بهتر است زنجیرچرخ همراه داشته باشید.</p>';
+    if (ev.beyond) html += '<p class="warn">برای بعضی ساعت‌های مسیر، پیش‌بینی کافی در دسترس نبود و از آخرین داده‌ی موجود استفاده شد.</p>';
 
     html += '<div class="strip" role="group" aria-label="وضعیت هوا در طول مسیر">';
     for (var s = 0; s < pts.length - 1; s++) {
@@ -515,52 +740,42 @@ button,input{font-family:inherit;color:inherit}
       html += '<button type="button" class="seg" data-s="' + sv + '" data-i="' + idx + '" aria-label="کیلومتر ' + fa(Math.round(pts[s].km)) +
         ' تا ' + fa(Math.round(pts[s + 1].km)) + ': ' + SEV_LABEL[sv] + '"></button>';
     }
-    html += '</div><div class="stripends"><span>مبدا · ' + fmtTime(r.dep) + '</span><span>مقصد · ' + fmtTime(r.arr) + '</span></div>';
+    html += '</div><div class="stripends"><span>مبدا · ' + fmtTime(dep) + '</span><span>مقصد · ' + fmtTime(arr) + '</span></div>';
     html += '<div class="legend">';
     for (var l = 0; l < 4; l++) html += '<span data-s="' + l + '"><i></i>' + SEV_LABEL[l] + '</span>';
     html += '</div>';
 
-    var wazeUrl = 'https://waze.com/ul?ll=' + r.d.lat.toFixed(6) + ',' + r.d.lon.toFixed(6) + '&navigate=yes';
-    html += '<div class="actions2"><a href="' + wazeUrl + '" target="_blank" rel="noopener">باز کردن مقصد در Waze</a>' +
-      '<button type="button" class="btn" id="refresh">به‌روزرسانی</button></div>' +
-      '<p class="note">Waze مسیر را از موقعیت فعلی شما شروع می‌کند.</p>';
+    html += bestTimeHTML(ri, ev);
+
+    var wazeUrl = 'https://waze.com/ul?ll=' + data.d.lat.toFixed(6) + ',' + data.d.lon.toFixed(6) + '&navigate=yes';
+    html += '<div class="actions2"><a href="' + wazeUrl + '" target="_blank" rel="noopener">باز کردن مقصد در Waze</a></div>' +
+      '<div class="actions2"><button type="button" class="btn" data-act="save">⭐ ذخیره‌ی مسیر</button>' +
+      '<button type="button" class="btn" data-act="refresh">به‌روزرسانی</button></div>' +
+      '<p class="note">Waze مسیر را از موقعیت فعلی شما شروع می‌کند و ممکن است مسیر دیگری پیشنهاد بدهد. ترافیک و بسته‌بودن جاده را در Waze ببینید.</p>';
 
     html += '<ol class="pts">';
     pts.forEach(function (p, i) {
       html += '<li><button type="button" class="pt" data-i="' + i + '" data-s="' + p.a.s + '">' +
         '<span class="ico">' + p.icon + '</span>' +
-        '<span class="top1"><b>کیلومتر ' + fa(Math.round(p.km)) + '</b><span>' + whenText(p.eta, r.dep) + '</span></span>' +
-        '<span class="temp">' + fa(Math.round(p.w.temp)) + '°</span>' +
+        '<span class="top1"><b>کیلومتر ' + fa(Math.round(p.km)) + '</b><span>' + whenText(p.eta, dep) + '</span></span>' +
+        '<span class="temp">' + deg(p.w.temp) + '</span>' +
         '<span class="bot">' + p.desc + p.a.tags.map(function (t) { return '<span class="tag">' + t + '</span>'; }).join('') + '</span>' +
-        '<span class="nums"><span>' + fa(p.w.precip, 1) + ' میلی‌متر</span><span>' + fa(Math.round(p.w.wind)) + ' km/h</span></span>' +
+        '<span class="nums"><span>' + fa(p.w.precip, 1) + ' میلی‌متر</span><span>' + fa(Math.round(p.w.wind)) + ' km/h</span>' +
+        (p.elev != null ? '<span>' + fa(Math.round(p.elev)) + ' متر</span>' : '') + '</span>' +
         '</button></li>';
     });
     html += '</ol>';
     html += '<p class="foot">پیش‌بینی است و ممکن است با شرایط واقعی تفاوت داشته باشد؛ برای وضعیت جاده‌ها به اعلام راهداری (۱۴۱) هم توجه کنید. زمان رسیدن تخمینی است و ترافیک و توقف‌ها را شامل نمی‌شود. داده‌ها: Open-Meteo، نقشه: OpenStreetMap، مسیریابی: OSRM.</p>';
 
-    var sheet = $('#sheet');
-    sheet.innerHTML = html; sheet.hidden = false; sheet.scrollTop = 0;
-    $('#refresh').addEventListener('click', run);
-
-    /* collapse form */
-    $('#barText').textContent = r.o.label + ' ← ' + r.d.label;
-    $('#top').classList.add('collapsed');
-
-    requestAnimationFrame(function () {
-      map.invalidateSize();
-      map.fitBounds(line.getBounds(), { padding: [30, 30] });
-    });
+    sheetEl.innerHTML = html; sheetEl.hidden = false; sheetEl.scrollTop = 0;
   }
 
-  function whenText(ms, depMs) {
-    var t = fmtTime(ms);
-    return dayKey(ms) !== dayKey(depMs) ? fmtDay(ms) + ' ' + t : t;
-  }
   function popupHTML(p, dep) {
     return '<div class="pop"><b>کیلومتر ' + fa(Math.round(p.km)) + '</b> · ساعت ' + whenText(p.eta, dep) + '<br>' +
       p.icon + ' ' + p.desc + (p.a.tags.length ? ' · ' + p.a.tags.join('، ') : '') + '<br>' +
-      'دما ' + fa(Math.round(p.w.temp)) + '° · بارش ' + fa(p.w.precip, 1) + ' میلی‌متر<br>باد ' + fa(Math.round(p.w.wind)) +
-      ' km/h (تندباد ' + fa(Math.round(p.w.gust)) + ')</div>';
+      'دما ' + deg(p.w.temp) + ' · بارش ' + fa(p.w.precip, 1) + ' میلی‌متر<br>باد ' + fa(Math.round(p.w.wind)) +
+      ' km/h (تندباد ' + fa(Math.round(p.w.gust)) + ')' +
+      (p.elev != null ? '<br>ارتفاع ' + fa(Math.round(p.elev)) + ' متر' : '') + '</div>';
   }
 
   function setActive(i) {
@@ -575,13 +790,26 @@ button,input{font-family:inherit;color:inherit}
     map.setView(m.getLatLng(), Math.max(map.getZoom(), 9), { animate: true });
     m.openPopup();
   }
-  $('#sheet').addEventListener('click', function (e) {
-    var el = e.target.closest('[data-i]');
-    if (el) focusPoint(+el.dataset.i);
+
+  sheetEl.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-act],[data-i],[data-r],[data-dep]');
+    if (!el) return;
+    var ds = el.dataset;
+    if (ds.act === 'handle') { sheetEl.classList.toggle('min'); }
+    else if (ds.act === 'save') { saveCurrent(el); }
+    else if (ds.act === 'refresh') { run(); }
+    else if (ds.dep) {
+      var ms = +ds.dep;
+      data.dep = ms; departTouched = true; departEl.value = toLocalInput(new Date(ms));
+      showRoute(data.sel, false);
+    }
+    else if (ds.r != null) { showRoute(+ds.r, false); }
+    else if (ds.i != null) { focusPoint(+ds.i); }
   });
 
   $('#bar').addEventListener('click', function () { $('#top').classList.remove('collapsed'); });
   $('#form').addEventListener('submit', function (e) { e.preventDefault(); run(); });
+  renderSaved();
 })();
 </script>
 </body>
