@@ -126,6 +126,9 @@ button,input{font-family:inherit;color:inherit}
 .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin:8px 0 12px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-inline-end:5px}
 
+.mode{display:flex;gap:6px;align-items:center;margin:0 0 6px;font-size:13.5px}
+.chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.note a{color:var(--accent)}
 .best{background:var(--paper);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:14px}
 .best strong{display:block}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -136,6 +139,7 @@ button,input{font-family:inherit;color:inherit}
 .actions2{display:flex;gap:8px;margin-bottom:8px}
 .actions2 a{flex:1;display:flex;align-items:center;justify-content:center;height:46px;border-radius:12px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:700}
 .actions2 .btn{flex:1;font-size:13.5px;padding:0 6px}
+.actions2 a.alt.wide{flex:1}
 .actions2 a.alt{flex:0 0 auto;padding:0 14px;background:var(--paper);color:var(--ink);border:1px solid var(--line);font-weight:600}
 .note{font-size:12.5px;color:var(--muted);margin:0 0 12px}
 
@@ -346,33 +350,83 @@ button,input{font-family:inherit;color:inherit}
   }
 
   /* ---------- weather ---------- */
+  var MODELS = ['icon_seamless', 'ecmwf_ifs025', 'gfs_seamless'];
+  var VARS = ['temperature_2m', 'precipitation', 'snowfall', 'weather_code', 'wind_speed_10m', 'wind_gusts_10m', 'visibility'];
+  var cautious = true;
+  try { cautious = localStorage.getItem('rw_mode') !== 'normal'; } catch (e) { /* ignore */ }
+
+  function combineModels(per) {
+    var n = per[0].time.length, out = { time: per[0].time };
+    VARS.forEach(function (v) { out[v] = new Array(n); });
+    for (var i = 0; i < n; i++) {
+      var tsum = 0, tn = 0, pmax = 0, smax = 0, wmax = 0, gmax = 0, vmin = null, bestCode = null, bestP = -1;
+      for (var k = 0; k < per.length; k++) {
+        var m = per[k];
+        var tv = m.temperature_2m ? m.temperature_2m[i] : null; if (tv != null) { tsum += tv; tn++; }
+        var pv = (m.precipitation && m.precipitation[i]) || 0; if (pv > pmax) pmax = pv;
+        var sv = (m.snowfall && m.snowfall[i]) || 0; if (sv > smax) smax = sv;
+        var wv = (m.wind_speed_10m && m.wind_speed_10m[i]) || 0; if (wv > wmax) wmax = wv;
+        var gv = (m.wind_gusts_10m && m.wind_gusts_10m[i]) || 0; if (gv > gmax) gmax = gv;
+        var vv = m.visibility ? m.visibility[i] : null; if (vv != null && (vmin == null || vv < vmin)) vmin = vv;
+        var cv = m.weather_code ? m.weather_code[i] : null;
+        if (cv != null && (pv > bestP || (pv === bestP && cv > bestCode))) { bestP = pv; bestCode = cv; }
+      }
+      out.temperature_2m[i] = tn ? tsum / tn : 0;
+      out.precipitation[i] = pmax; out.snowfall[i] = smax;
+      out.weather_code[i] = bestCode == null ? 0 : bestCode;
+      out.wind_speed_10m[i] = wmax; out.wind_gusts_10m[i] = gmax; out.visibility[i] = vmin;
+    }
+    return out;
+  }
+  function normalizeLoc(loc) {
+    var h = loc.hourly;
+    if (h.temperature_2m) return { elevation: loc.elevation, hs: h, hc: h };
+    var per = [];
+    MODELS.forEach(function (m) {
+      var o = { time: h.time };
+      VARS.forEach(function (v) { var a = h[v + '_' + m]; if (a) o[v] = a; });
+      if (o.precipitation && o.weather_code && o.temperature_2m) per.push(o);
+    });
+    if (!per.length) throw new Error('no model data');
+    return { elevation: loc.elevation, hs: per[0], hc: combineModels(per) };
+  }
   function fetchWeather(pts) {
     var lat = pts.map(function (p) { return p.lat.toFixed(3); }).join(',');
     var lon = pts.map(function (p) { return p.lon.toFixed(3); }).join(',');
-    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
-      '&hourly=temperature_2m,precipitation,snowfall,weather_code,wind_speed_10m,wind_gusts_10m,visibility' +
-      '&forecast_days=6&timeformat=unixtime&timezone=auto';
-    return getFirst([url, url], 30000).then(function (d) {
-      d = Array.isArray(d) ? d : [d];
-      if (d.length !== pts.length || !d[0] || !d[0].hourly) throw new Error('bad weather data');
-      return d;
-    });
+    var single = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&hourly=' + VARS.join(',') + '&forecast_days=6&timeformat=unixtime&timezone=auto';
+    var multi = single + '&models=' + MODELS.join(',');
+    function load(url) {
+      return getJSON(url, 30000).then(function (d) {
+        d = Array.isArray(d) ? d : [d];
+        if (d.length !== pts.length || !d[0] || !d[0].hourly) throw new Error('bad weather data');
+        return d.map(normalizeLoc);
+      });
+    }
+    return load(multi).catch(function () { return load(single); }).catch(function () { return load(single); });
   }
-  function pickHour(h, etaMs) {
-    var t = h.time;
-    var i = Math.round((etaMs / 1000 - t[0]) / 3600);
-    var out = i > t.length - 1;
-    i = Math.max(0, Math.min(t.length - 1, i));
-    var vis = h.visibility ? h.visibility[i] : null;
+  function pickHour(h, etaMs, wide) {
+    var t = h.time, last = t.length - 1;
+    var x = (etaMs / 1000 - t[0]) / 3600;
+    var cl = function (i) { return Math.max(0, Math.min(last, i)); };
+    var ir = cl(Math.round(x)), ic = cl(Math.ceil(x));
+    var pr = h.precipitation, c = ir;
+    if ((pr[ic] || 0) > (pr[ir] || 0)) c = ic;
+    var near = pr[c] || 0;
+    if (wide) { for (var k = ic - 1; k <= ic + 1; k++) { var v = pr[cl(k)] || 0; if (v > near) near = v; } }
+    var vis = h.visibility ? h.visibility[ir] : null;
     return {
-      temp: h.temperature_2m[i], precip: h.precipitation[i] || 0, snow: h.snowfall[i] || 0,
-      code: h.weather_code[i], wind: h.wind_speed_10m[i] || 0, gust: h.wind_gusts_10m[i] || 0,
-      vis: vis == null ? 99999 : vis, beyond: out
+      temp: h.temperature_2m[ir] == null ? 0 : h.temperature_2m[ir],
+      precip: pr[c] || 0, near: near, snow: (h.snowfall && h.snowfall[c]) || 0,
+      code: h.weather_code[c] == null ? 0 : h.weather_code[c],
+      wind: (h.wind_speed_10m && h.wind_speed_10m[ir]) || 0, gust: (h.wind_gusts_10m && h.wind_gusts_10m[ir]) || 0,
+      vis: vis == null ? 99999 : vis, beyond: x > last
     };
   }
   function assess(w) {
     var s = 0, tags = [], p = w.precip, c = w.code;
     if (p >= 7.5) s = 3; else if (p >= 2.5) s = 2; else if (p >= 0.3) s = 1;
+    if (p < 0.3 && w.near >= 0.3) { s = Math.max(s, 1); tags.push('احتمال بارش'); }
     if ([71, 73, 75, 77, 85, 86].indexOf(c) > -1 || w.snow > 0.1) {
       s = Math.max(s, 2);
       if (c === 75 || c === 86 || w.snow >= 1) s = 3;
@@ -570,14 +624,27 @@ button,input{font-family:inherit;color:inherit}
   var data = null;
   var markers = [];
 
+  /* the weather code alone can say "cloudy" while the models still give some rain */
+  function describe(w) {
+    var base = WX[w.code] || ['نامشخص', '❔'];
+    if (w.code < 51) {
+      if (w.precip >= 0.3) {
+        var amt = w.precip >= 7.5 ? 'شدید' : w.precip >= 2.5 ? 'متوسط' : 'ضعیف';
+        return (w.temp <= 1 || w.snow > 0.1) ? ['برف ' + amt, '🌨️'] : ['باران ' + amt, '🌧️'];
+      }
+      if (w.near >= 0.3) return [base[0], '🌦️'];
+    }
+    return base;
+  }
+
   function evalRoute(ri, depMs) {
     var r = data.routes[ri];
     var worst = 0, exposure = 0, seg = r.total / (r.pts.length - 1), beyond = false;
     var pts = r.pts.map(function (p, i) {
       var eta = depMs + r.dur * p.frac * 1000;
-      var w = pickHour(r.wx[i].hourly, eta);
+      var w = pickHour(cautious ? r.wx[i].hc : r.wx[i].hs, eta, cautious);
       var a = assess(w);
-      var d0 = WX[w.code] || ['نامشخص', '❔'];
+      var d0 = describe(w);
       worst = Math.max(worst, a.s); exposure += SEVW[a.s] * seg / 10; if (w.beyond) beyond = true;
       return { km: p.km, frac: p.frac, j: p.j, lat: p.lat, lon: p.lon, eta: eta, w: w, a: a,
         desc: d0[0], icon: d0[1], elev: r.wx[i].elevation };
@@ -811,6 +878,10 @@ button,input{font-family:inherit;color:inherit}
     for (var l = 0; l < 4; l++) html += '<span data-s="' + l + '"><i></i>' + SEV_LABEL[l] + '</span>';
     html += '</div>';
 
+    html += '<div class="mode"><span>حساسیت بارش:</span>' +
+      '<button type="button" class="chip' + (cautious ? ' on' : '') + '" data-mode="cautious">محتاط</button>' +
+      '<button type="button" class="chip' + (cautious ? '' : ' on') + '" data-mode="normal">معمولی</button></div>' +
+      '<p class="note">محتاط: بیشینه‌ی چند مدل هواشناسی و در نظر گرفتن ±۱ ساعت خطای زمانی. مدل‌ها پیش‌بینی‌اند، نه رادار؛ رگبارهای محلی را همیشه نشان نمی‌دهند.</p>';
     html += bestTimeHTML(ri, ev);
 
     var sum = data.o.label + ' ← ' + data.d.label + '\n' + fa(Math.round(r.total)) + ' کیلومتر · ' + fmtDur(r.dur) +
@@ -820,14 +891,19 @@ button,input{font-family:inherit;color:inherit}
     });
     lastSummary = sum.replace(/[\u2066\u2069]/g, '');
 
+    var mid = pts[Math.floor(pts.length / 2)];
+    var windyUrl = 'https://www.windy.com/?rain,' + mid.lat.toFixed(3) + ',' + mid.lon.toFixed(3) + ',8';
     var wazeUrl = 'https://waze.com/ul?ll=' + data.d.lat.toFixed(6) + ',' + data.d.lon.toFixed(6) + '&navigate=yes';
     var gmUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + data.d.lat.toFixed(6) + ',' + data.d.lon.toFixed(6) + '&travelmode=driving';
+    var windyUrl = 'https://www.windy.com/' + data.o.lat.toFixed(3) + '/' + data.o.lon.toFixed(3) + '?radar,' + data.o.lat.toFixed(3) + ',' + data.o.lon.toFixed(3) + ',8';
+    html += '<div class="actions2"><a class="alt wide" href="' + windyUrl + '" target="_blank" rel="noopener">رادار و ماهواره (Windy) · باران لحظه‌ای</a></div>';
     html += '<div class="actions2"><a href="' + wazeUrl + '" target="_blank" rel="noopener">باز کردن مقصد در Waze</a>' +
       '<a class="alt" href="' + gmUrl + '" target="_blank" rel="noopener">Google Maps</a></div>' +
       '<div class="actions2"><button type="button" class="btn" data-act="save">⭐ ذخیره</button>' +
       '<button type="button" class="btn" data-act="share">اشتراک‌گذاری</button>' +
       '<button type="button" class="btn" data-act="refresh">به‌روزرسانی</button></div>' +
-      '<p class="note">Waze مسیر را از موقعیت فعلی شما شروع می‌کند و ممکن است مسیر دیگری پیشنهاد بدهد. ترافیک و بسته‌بودن جاده را در Waze ببینید.</p>';
+      '<p class="note">Waze مسیر را از موقعیت فعلی شما شروع می‌کند و ممکن است مسیر دیگری پیشنهاد بدهد. ترافیک و بسته‌بودن جاده را در Waze ببینید.</p>' +
+      '<p class="note">بارش لحظه‌ای را روی رادار و ماهواره هم ببینید: <a href="' + windyUrl + '" target="_blank" rel="noopener">Windy</a></p>';
 
     html += '<ol class="pts">';
     pts.forEach(function (p, i) {
@@ -841,7 +917,7 @@ button,input{font-family:inherit;color:inherit}
         '</button></li>';
     });
     html += '</ol>';
-    html += '<p class="foot">پیش‌بینی است و ممکن است با شرایط واقعی تفاوت داشته باشد؛ برای وضعیت جاده‌ها به اعلام راهداری (۱۴۱) هم توجه کنید. زمان رسیدن تخمینی است و ترافیک و توقف‌ها را شامل نمی‌شود. داده‌ها: Open-Meteo، نقشه: OpenStreetMap، مسیریابی: OSRM.</p>';
+    html += '<p class="foot">داده‌ی هوا خروجی مدل‌های جوی با شبکه‌ی چندکیلومتری است، نه مشاهده‌ی لحظه‌ای؛ بارش‌های محلی ممکن است نشان داده نشود و پیش‌بینی با شرایط واقعی تفاوت دارد؛ برای وضعیت جاده‌ها به اعلام راهداری (۱۴۱) هم توجه کنید. زمان رسیدن تخمینی است و ترافیک و توقف‌ها را شامل نمی‌شود. داده‌ها: Open-Meteo (مدل‌های ICON، ECMWF، GFS)، نقشه: OpenStreetMap، مسیریابی: OSRM.</p>';
 
     sheetEl.innerHTML = html; sheetEl.hidden = false; sheetEl.scrollTop = 0;
   }
@@ -875,6 +951,11 @@ button,input{font-family:inherit;color:inherit}
     else if (ds.act === 'save') { saveCurrent(el); }
     else if (ds.act === 'refresh') { run(); }
     else if (ds.act === 'share') { shareSummary(el); }
+    else if (ds.mode) {
+      cautious = ds.mode === 'cautious';
+      try { localStorage.setItem('rw_mode', cautious ? 'cautious' : 'normal'); } catch (e) { /* ignore */ }
+      showRoute(data.sel, false);
+    }
     else if (ds.dep) {
       setDepMs(+ds.dep); commitDep();
     }
